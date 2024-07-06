@@ -2,11 +2,11 @@ from fastapi import FastAPI, Query
 import pandas as pd
 import numpy as np
 import joblib
-from scipy.sparse import csr_matrix
 from typing import List
 from pydantic import BaseModel
 from fastapi.middleware.cors import CORSMiddleware
-
+import sklearn
+print('The scikit-learn version is {}.'.format(sklearn.__version__))
 app = FastAPI()
 origins = [
     "*"
@@ -56,8 +56,15 @@ def read_root():
 
 @app.get("/search")
 def search_titles(query: str = Query(..., description="The string to search for in titles")):
-    matching_titles = data[data['title'].str.lower().str.startswith(query, na=False)][['anime_id', 'title']].to_dict(orient='records')
+    query_lower = query.lower()
+    
+    if data.empty:
+        print('Data is empty')
+    
+    matching_titles = data[data['title'].str.lower().str.startswith(query_lower, na=False)][['anime_id', 'title']].to_dict(orient='records')
+    
     return {"matching_titles": matching_titles}
+
 
 class ArrayModel(BaseModel):
     arr: List[int]
